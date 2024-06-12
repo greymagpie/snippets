@@ -1,1 +1,38 @@
 #!/bin/bash
+
+# Globals
+NOTIFICATION_RECIPIENT
+NOTIFICATION_SENDER
+
+# Check if required arguments are provided
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $0 <source_ip> <event_message> <timestamp>"
+    exit 1
+fi
+
+# Assign script arguments to variables
+SOURCE_IP="$1"
+EVENT_MESSAGE="$2"
+TIMESTAMP="$3"
+
+# Example actions based on the event fields
+# Here we just log the received data to a file
+LOG_FILE="/var/log/_notification.log"
+
+# Log the event details
+echo "Timestamp: $TIMESTAMP" >> $LOG_FILE
+echo "Source IP: $SOURCE_IP" >> $LOG_FILE
+echo "Event Message: $EVENT_MESSAGE" >> $LOG_FILE
+echo "----------------------------------------" >> $LOG_FILE
+
+# Twilio notification action
+# curl -X POST -d "Body=Hi there, this is a test message from cURL" -d "From=$TWILIO_NUMBER" -d "To=$TO_NUMBER" "https://api.twilio.com/2010-04-01/Accounts/$TWILIO_ACCOUNT_SID/Messages" -u "$TWILIO_ACCOUNT_SID:$TWILIO_AUTH_TOKEN"
+
+curl 'https://api.twilio.com/2010-04-01/Accounts/$TWILIO_ACC_ID/Messages.json' -X POST \
+--data-urlencode 'To=$NOTIFICATION_RECIPIENT' \
+--data-urlencode 'From=$NOTIFICATION_SENDER' \
+--data-urlencode 'Body=Hi, I am a Test Message.' \
+-u $TWILIO_ACC_ID:$TWILIO_ACC_SECRET
+
+# Exit successfully
+exit 0
