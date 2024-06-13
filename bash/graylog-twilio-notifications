@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ###
-# Graylog Twilio SMS/Whatsapp Notification Integration 
+# Graylog Twilio SMS/Whatsapp Notification Integration
 ###
 
 # Script arguments
@@ -12,7 +12,7 @@ TIMESTAMP="$4"
 NOTIFICATION_RECIPIENTS="$5"
 
 # Globals
-LOCALLOG=false
+LOCALLOG=true
 LOG_FILE="/var/log/sms_notification.log"
 TWILIO_ACC_ID="<redacted>"
 TWILIO_ACC_SECRET="<redacted>"
@@ -29,32 +29,32 @@ if [[ "$NOTIFICATION_RECIPIENTS" == *";"* ]]; then
     IFS=';'
     read -ra NOTIFICATION_RECIPIENTS_PARSED <<< "$NOTIFICATION_RECIPIENTS"
     IFS=$' \t\n'
-else 
+else
     NOTIFICATION_RECIPIENTS_PARSED+=("$NOTIFICATION_RECIPIENTS")
 fi
 
 # Notification body
-NOTIFICATION_BODY=(cat << 'EOF'
+NOTIFICATION_BODY="$(cat << EOF
 $EVENT_TITLE @ $TIMESTAMP (UTC)
 From: $SOURCE_IP
 User: $USERNAME
 EOF
-)
+)"
 
 # Twilio notification action
 # curl -X POST -d "Body=Hi there, this is a test message from cURL" -d "From=$TWILIO_NUMBER" -d "To=$TO_NUMBER" "https://api.twilio.com/2010-04-01/Accounts/$TWILIO_ACCOUNT_SID/Messages" -u "$TWILIO_ACCOUNT_SID:$TWILIO_AUTH_TOKEN"
 
-for (mobileNr in ${NOTIFICATION_RECIPIENTS_PARSED[@]}); do
-    curl 'https://api.twilio.com/2010-04-01/Accounts/$TWILIO_ACC_ID/Messages.json' -X POST \
-    --data-urlencode 'To=$mobileNr' \
-    --data-urlencode 'From=$NOTIFICATION_SENDER' \
-    --data-urlencode 'Body=$NOTIFICATION_BODY' \
+for mobileNr in ${NOTIFICATION_RECIPIENTS_PARSED[@]}; do
+    curl -s -o /dev/null "https://api.twilio.com/2010-04-01/Accounts/$TWILIO_ACC_ID/Messages.json" -X POST \
+    --data-urlencode "To=$mobileNr" \
+    --data-urlencode "From=$NOTIFICATION_SENDER" \
+    --data-urlencode "Body=$NOTIFICATION_BODY" \
     -u $TWILIO_ACC_ID:$TWILIO_ACC_SECRET
     sleep 1
 done
 
 # Local logging
-if [LOCALLOG] && [ -f $LOG_FILE]; then
+if [ "$LOCALLOG" = true ] && [ -f "$LOG_FILE" ] && [ "$response"  ]; then
     echo "$TIMESTAMP: SMS Notification: $EVENT_TITLE by $SOURCE_IP to $NOTIFICATION_RECIPIENTS" >> $LOG_FILE
 fi
 
