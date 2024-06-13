@@ -35,7 +35,7 @@ fi
 
 # Notification body
 NOTIFICATION_BODY=(cat << 'EOF'
-$EVENT_TITLE @ $TIMESTAMP
+$EVENT_TITLE @ $TIMESTAMP (UTC)
 From: $SOURCE_IP
 User: $USERNAME
 EOF
